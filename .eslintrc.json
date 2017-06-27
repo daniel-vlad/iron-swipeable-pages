@@ -1,0 +1,38 @@
+{
+  // "extends": ["eslint:recommended", "google"],
+  "ecmaVersion": 6,
+  "max-len": 100,
+  "rules": {
+    "indent": ["error", 2],
+    "no-console": "off",
+    "no-var": "error",
+    "strict": "error"
+    // "valid-jsdoc": [
+    //   "error",
+    //   {
+    //     "requireReturn": false,
+    //     "prefer": {
+    //       "arg": "param",
+    //       "argument": "param",
+    //       "returns": "return"
+    //     },
+    //     "preferType": {
+    //       "Boolean": "boolean",
+    //       "Number": "number",
+    //       "String": "string",
+    //       "object": "Object"
+    //     }
+    //   }
+    // ]
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "plugins": [
+    "html"
+  ],
+  "globals": {
+    "Polymer": true
+  }
+}

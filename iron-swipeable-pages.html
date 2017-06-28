@@ -43,21 +43,25 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
 <dom-module id="iron-swipeable-pages">
   <template>
     <style>
-      :host {
+       :host {
         position: relative;
         display: block;
-        overflow-x: hidden;
+        /*overflow-x: hidden;*/
+        overflow-y: hidden;
       }
-      :host > ::slotted(*) {
+
+       :host> ::slotted(*) {
         position: absolute;
         width: 100%;
         height: 100%;
         overflow-y: auto;
-        will-change: left, transform;
+        will-change: top, transform;
       }
-      :host > ::slotted(:not(.iron-selected):not(.iron-swiping))  {
-        left: -100% !important;
+
+       :host> ::slotted(:not(.iron-selected):not(.iron-swiping)) {
+        top: -100% !important;
       }
+
     </style>
     <slot></slot>
   </template>
@@ -205,31 +209,30 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         },
 
         _addPage(page) {
-            if (!page || page.nodeType !== Node.ELEMENT_NODE)
-              return;
-            page.setAttribute('aria-hidden', !page.classList.contains('iron-selected'));
-            this.listen(page, 'webkitTransitionEnd', '_onTransitionEnd');
-            this.listen(page, 'transitionend', '_onTransitionEnd');
+          if (!page || page.nodeType !== Node.ELEMENT_NODE)
+            return;
+          page.setAttribute('aria-hidden', !page.classList.contains('iron-selected'));
+          this.listen(page, 'webkitTransitionEnd', '_onTransitionEnd');
+          this.listen(page, 'transitionend', '_onTransitionEnd');
         },
 
         _removePage(page) {
-            if (!page || page.nodeType !== Node.ELEMENT_NODE)
-              return;
-            this.unlisten(page, 'webkitTransitionEnd', '_onTransitionEnd');
-            this.unlisten(page, 'transitionend', '_onTransitionEnd');
+          if (!page || page.nodeType !== Node.ELEMENT_NODE)
+            return;
+          this.unlisten(page, 'webkitTransitionEnd', '_onTransitionEnd');
+          this.unlisten(page, 'transitionend', '_onTransitionEnd');
         },
 
         _onFallbackSelectionChange(event) {
           if (!this.fallbackSelection) {
             this.unlisten(this, 'dom-change', '_onDomChange');
-          }
-          else {
+          } else {
             this.listen(this, 'dom-change', '_onDomChange');
           }
         },
 
         _onDomChange(event) {
-          if ( this.selectedItem && this.selectedItem.offsetWidth == 0 ) {
+          if (this.selectedItem && this.selectedItem.offsetWidth == 0) {
             this.selected = this.fallbackSelection;
           }
         },
@@ -242,11 +245,12 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             return;
           }
 
-          if ((track.x - track.dx) < this.edgeSwipeSensitivity || (track.x - track.dx) > this.offsetWidth - this.edgeSwipeSensitivity) {
+          if ((track.x - track.dx) < this.edgeSwipeSensitivity || (track.x - track.dx) > this.offsetWidth -
+            this.edgeSwipeSensitivity) {
             return;
           }
 
-          if (track.state === 'start' && Math.abs(track.dy) < Math.abs(track.dx)) {
+          if (track.state === 'start' && Math.abs(track.dy) > Math.abs(track.dx)) {
             // if we don't have at least 2 items, no need to swipe...
             if (this.items.length < 2) {
               return;
@@ -267,15 +271,16 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             this._resetPages();
           }
           this._setUpSwipePages();
-          this._animatePages(trackData.dx);
-          this._switchPageIfNecessary(trackData.dx);
+          this._animatePages(trackData.dy);
+          this._switchPageIfNecessary(trackData.dy);
           // Prevent regular touchmove event (disables vertical scroll)
           window.addEventListener('touchmove', this._preventTouchMove);
         },
 
         _trackMove(trackData) {
-          this._animatePages(trackData.dx);
-          this._switchPageIfNecessary(trackData.dx);
+          console.log(trackData)
+          this._animatePages(trackData.dy);
+          this._switchPageIfNecessary(trackData.dy);
         },
 
         _trackEnd(trackData) {
@@ -288,16 +293,26 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             this._animatedPages[i].style.transition = this._computeTransition(1);
           }
           this._transitionRunning = true;
-
           // The element is swiped away if the swiping get passed the treshold.
-          this._completeSwipe = Math.abs(trackData.dx) > this._getOffsetWidth() * this.threshold;
+          this._completeSwipe = Math.abs(trackData.dy) > this._getOffsetHeight() * this.threshold;
           if (this._completeSwipe) {
             this.isGesture = true;
-            const direction = trackData.dx > 0;
+            const direction = trackData.dy > 0;
+            console.log(direction)
             // we are swipping, therefore update selected
+            //console.log(this._leftCandidate)
+            // console.log(this._rightCandidate)
             direction ? this._selectPage(this._leftCandidate) : this._selectPage(this._rightCandidate);
             // trigger the animation in the proper direction
-            this._animatePages(direction ? this._getOffsetWidth() : -this._getOffsetWidth());
+            //right is up, left is down
+            //  console.log(direction ? this._getOffsetHeight() : -this._getOffsetHeight())
+            //  this._animatePages(this._getOffsetHeight() +7)
+            //this._initPage(this._rightCandidate, 'none', 0)
+            // debugger
+            // console.log(this._getOffsetHeight())
+            this._animatePages(direction ? this._getOffsetHeight() : -this._getOffsetHeight());
+            //  this._initPage(this._rightCandidate, 'none', 0)
+
           } else {
             this._animatePages(0);
           }
@@ -360,30 +375,27 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                   translateRight = false;
                   virtualIndex = len;
                 }
-              }
-              else if (index == len - 1 && this._lastIndex == 0) {
+              } else if (index == len - 1 && this._lastIndex == 0) {
                 // wrap-around
                 translateRight = false;
                 if (this.carousel) {
                   translateRight = true;
                   virtualLastIndex = len;
                 }
-              }
-              else if (index > this._lastIndex) {
+              } else if (index > this._lastIndex) {
                 translateRight = false;
-              }
-              else {
+              } else {
                 translateRight = true;
               }
-
               if (translateRight) {
                 // we translate to the right
+                console.log('right')
                 for (let i = virtualLastIndex; i >= virtualIndex; i--) {
                   var item = this.items[i % len];
                   this._initPage(
                     item,
                     this._computeTransition(virtualLastIndex - virtualIndex),
-                    this._getOffsetWidth()*(i - skipped - virtualLastIndex));
+                    this._getOffsetWidth() * (i - skipped - virtualLastIndex));
                   // Need for dom.flush()?
                   if (item.offsetWidth == 0) {
                     this._resetPage(item);
@@ -392,13 +404,14 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                 }
               } else {
                 skipped = 0;
+                console.log('left')
                 // we translate to the left
                 for (let j = virtualLastIndex; j <= virtualIndex; j++) {
                   var item = this.items[j % len];
                   this._initPage(
                     item,
                     this._computeTransition(virtualIndex - virtualLastIndex),
-                    this._getOffsetWidth()*(j - skipped - virtualLastIndex));
+                    this._getOffsetWidth() * (j - skipped - virtualLastIndex));
                   // Need for dom.flush()?
                   if (item.offsetWidth == 0) {
                     this._resetPage(item);
@@ -409,7 +422,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
               this._transitionRunning = true;
 
               // before animating, we need to be sure style are updated correctly
-              this.async( function() {
+              this.async(function() {
                 this._animatePages((virtualLastIndex - virtualIndex + skipped) * this._getOffsetWidth());
               });
             }
@@ -421,16 +434,19 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           // reset the animated page list
           this._animatedPages = [];
           // selected page
+          //  console.log(this.selectedItem)
           this._initPage(this.selectedItem, 'none', 0);
           // left candidate
           let skipped = 0;
           let found = false;
           while (!found) {
-            const leftIndex = (Number(this.indexOf(this.selectedItem)) - 1 - skipped + this.items.length) % this.items.length;
+            const leftIndex = (Number(this.indexOf(this.selectedItem)) - 1 - skipped + this.items.length) %
+              this.items.length;
+            // console.log( this.items[leftIndex])
             this._leftCandidate = this.items[leftIndex];
-            this._initPage(this._leftCandidate, 'none', -this._getOffsetWidth());
+            this._initPage(this._leftCandidate, 'none', -this._getOffsetHeight());
             // Need for dom.flush()?
-            if (this._leftCandidate.offsetWidth > 0) {
+            if (this._leftCandidate.offsetHeight > 0) {
               found = true;
             } else {
               this._resetPage(this._leftCandidate);
@@ -443,9 +459,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           while (!found) {
             const rightIndex = (Number(this.indexOf(this.selectedItem)) + 1 + skipped) % this.items.length;
             this._rightCandidate = this.items[rightIndex];
-            this._initPage(this._rightCandidate, 'none', this._getOffsetWidth());
+            this._initPage(this._rightCandidate, 'none', this._getOffsetHeight());
             // Need for dom.flush()?
-            if (this._rightCandidate.offsetWidth > 0) {
+            if (this._rightCandidate.offsetHeight > 0) {
               found = true;
             } else {
               this._resetPage(this._rightCandidate);
@@ -456,10 +472,14 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
 
         // prepare the page for animation and add it to the list of pages to be animated
         _initPage(page, transition, left) {
+          // console.log(page)
           if (!page) {
             return;
           }
-          page.style.left = `${left}px`;
+          // page.style.left = `${left}px`;
+          // console.log(left)
+          // page.style.left = `${left}px`;
+          page.style.top = `${left}px`;
           page.style.webkitTransition = transition;
           page.style.transition = transition;
           this.toggleClass('iron-swiping', true, page);
@@ -468,8 +488,10 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         },
 
         _animatePages(x) {
+          // console.log(x)
           for (let i = 0; i < this._animatedPages.length; i++) {
-            this.translate3d(`${x}px`, '0px', '0px', this._animatedPages[i]);
+            // this.translate3d(`${x}px`, '0px', '0px', this._animatedPages[i]);
+            this.translate3d('0px', `${x}px`, '0px', this._animatedPages[i]);
           }
         },
 
@@ -482,7 +504,10 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           }
         },
 
+        //handles the `iron-selected` part
         _selectPage(page) {
+          console.log(this)
+          console.log(page)
           const index = this.indexOf(page);
           // TODO: should be replaced with this.selectIndex when merged in master:
           // https://github.com/PolymerElements/iron-selector/issues/87
@@ -504,7 +529,8 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             this._animatedPages[i].style.left = '0px';
             this._animatedPages[i].style.webkitTransition = 'none';
             this._animatedPages[i].style.transition = 'none';
-            this._animatedPages[i].setAttribute('aria-hidden', !this._animatedPages[i].classList.contains('iron-selected'));
+            this._animatedPages[i].setAttribute('aria-hidden', !this._animatedPages[i].classList.contains(
+              'iron-selected'));
             this.toggleClass('iron-swiping', false, this._animatedPages[i]);
             this.transform('none', this._animatedPages[i]);
           }
@@ -534,6 +560,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         _getOffsetWidth() {
           return this._offsetWidth || this.offsetWidth + (2 * this.padding);
         },
+        _getOffsetHeight() {
+          return this._offsetHeight || this.offsetHeight + (2 * this.padding);
+        },
 
         _onResize() {
           this._offsetWidth = this.offsetWidth + (2 * this.padding);
@@ -548,5 +577,6 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         }
       });
     })());
+
   </script>
 </dom-module>

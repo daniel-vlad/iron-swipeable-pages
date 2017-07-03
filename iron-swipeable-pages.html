@@ -189,9 +189,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           'track': '_onTrack',
           'iron-resize': '_onResize',
           'mousedown': '_onMouseDown',
-          'mouseup': '_onMouseUp',
           'down': '_onDown',
-          'up': '_onUp',
         },
 
         // Element Lifecycle
@@ -202,20 +200,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         },
         _onDown(e) {
           this.cursYPos = e.detail.y;
-          this.cursDown = true;
-        },
-        _onUp(e) {
-          this.cursDown = false;
         },
         _onMouseDown(e) {
           this.cursYPos = e.clientY;
-          this.cursDown = true;
-          // console.log(this._animatedPages[0].scrollHeight)
-          // console.log(window.innerHeight)
-          // console.log(this._animatedPages[0].scrollTop)
-        },
-        _onMouseUp(e) {
-          this.cursDown = false;
         },
         // Element page set up
 

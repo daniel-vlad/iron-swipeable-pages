@@ -335,7 +335,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             const direction = trackData.dy > 0;
 
             // we are swipping, therefore update selected
-            direction ? this._selectPage(this._leftCandidate) : this._selectPage(this._rightCandidate);
+            direction ? this._selectPage(this._downCandidate) : this._selectPage(this._upCandidate);
             // trigger the animation in the proper direction
             //right is up, left is down
             this._animatePages(direction ? this._getOffsetHeight() : -this._getOffsetHeight());
@@ -423,7 +423,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                   this._initPage(
                     item,
                     this._computeTransition(virtualLastIndex - virtualIndex),
-                    this._getOffsetWidth() * (i - skipped - virtualLastIndex));
+                    this._getOffsetHeight() * (i - skipped - virtualLastIndex));
                   // Need for dom.flush()?
                   if (item.offsetWidth == 0) {
                     this._resetPage(item);
@@ -439,7 +439,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                   this._initPage(
                     item,
                     this._computeTransition(virtualIndex - virtualLastIndex),
-                    this._getOffsetWidth() * (j - skipped - virtualLastIndex));
+                    this._getOffsetHeight() * (j - skipped - virtualLastIndex));
                   // Need for dom.flush()?
                   if (item.offsetWidth == 0) {
                     this._resetPage(item);
@@ -451,7 +451,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
 
               // before animating, we need to be sure style are updated correctly
               this.async(function() {
-                this._animatePages((virtualLastIndex - virtualIndex + skipped) * this._getOffsetWidth());
+                this._animatePages((virtualLastIndex - virtualIndex + skipped) * this._getOffsetHeight());
               });
             }
           }
@@ -471,13 +471,13 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             const leftIndex = (Number(this.indexOf(this.selectedItem)) - 1 - skipped + this.items.length) %
               this.items.length;
             // console.log( this.items[leftIndex])
-            this._leftCandidate = this.items[leftIndex];
-            this._initPage(this._leftCandidate, 'none', -this._getOffsetHeight());
+            this._downCandidate = this.items[leftIndex];
+            this._initPage(this._downCandidate, 'none', -this._getOffsetHeight());
             // Need for dom.flush()?
-            if (this._leftCandidate.offsetHeight > 0) {
+            if (this._downCandidate.offsetHeight > 0) {
               found = true;
             } else {
-              this._resetPage(this._leftCandidate);
+              this._resetPage(this._downCandidate);
               skipped++;
             }
           }
@@ -486,13 +486,13 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           found = false;
           while (!found) {
             const rightIndex = (Number(this.indexOf(this.selectedItem)) + 1 + skipped) % this.items.length;
-            this._rightCandidate = this.items[rightIndex];
-            this._initPage(this._rightCandidate, 'none', this._getOffsetHeight());
+            this._upCandidate = this.items[rightIndex];
+            this._initPage(this._upCandidate, 'none', this._getOffsetHeight());
             // Need for dom.flush()?
-            if (this._rightCandidate.offsetHeight > 0) {
+            if (this._upCandidate.offsetHeight > 0) {
               found = true;
             } else {
-              this._resetPage(this._rightCandidate);
+              this._resetPage(this._upCandidate);
               skipped++;
             }
           }
@@ -520,9 +520,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         // this function is useful if only 2 pages are available and we need to switch the next/previous page
         // on the left/right side depending on the direction of the swipe given with `dx`
         _switchPageIfNecessary(dx) {
-          if (this._leftCandidate && this._rightCandidate && this._leftCandidate === this._rightCandidate) {
+          if (this._downCandidate && this._upCandidate && this._downCandidate === this._upCandidate) {
             const direction = dx > 0 ? -1 : 1;
-            this._rightCandidate.style.left = `${direction * this._getOffsetWidth()}px`;
+            this._upCandidate.style.top = `${direction * this._getOffsetHeight()}px`;
           }
         },
 

@@ -48,7 +48,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         display: block;
         /*overflow-x: hidden;*/
         overflow-y: hidden;
-        height:var(--con-swipeable-pages-height);
+        height: var(--con-swipeable-pages-height);
       }
 
        :host> ::slotted(*) {
@@ -323,33 +323,22 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           }
           this._transitionRunning = true;
           // The element is swiped away if the swiping get passed the treshold.
-          // this._completeSwipe = Math.abs(trackData.dy) > this._getOffsetHeight() * this.threshold;
+           this._completeSwipe = Math.abs(trackData.dy) > this._getOffsetHeight() * this.threshold;
           let currentPage = this._animatedPages.filter(x => {
             return x.classList.contains('iron-selected')
           })[0];
-          this._completeSwipe = currentPage.scrollTop === currentPage.scrollHeight - currentPage.offsetHeight
+          this._completeScroll = currentPage.scrollTop === currentPage.scrollHeight - currentPage.offsetHeight || currentPage.scrollTop===0;
 
 
-          if (this._completeSwipe || currentPage.scrollTop===0) {
-            console.log(currentPage)
-
+          if (this._completeSwipe && this._completeScroll) {
             this.isGesture = true;
             const direction = trackData.dy > 0;
 
             // we are swipping, therefore update selected
-            //console.log(this._leftCandidate)
-            // console.log(this._rightCandidate)
             direction ? this._selectPage(this._leftCandidate) : this._selectPage(this._rightCandidate);
             // trigger the animation in the proper direction
             //right is up, left is down
-            //  console.log(direction ? this._getOffsetHeight() : -this._getOffsetHeight())
-            //  this._animatePages(this._getOffsetHeight() +7)
-            //this._initPage(this._rightCandidate, 'none', 0)
-            // debugger
-            // console.log(this._getOffsetHeight())
             this._animatePages(direction ? this._getOffsetHeight() : -this._getOffsetHeight());
-            //  this._initPage(this._rightCandidate, 'none', 0)
-
           } else {
             currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
             this._animatePages(0);
@@ -384,9 +373,10 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           }
           const index = this.indexOf(event.detail.item);
 
-          if (this._completeSwipe) {
+          if (this._completeSwipe && this._completeScroll) {
             // we just need to reset the flag, the transformation happened already by swiping
             this._completeSwipe = false;
+            this._completeScroll=false;
           } else {
             // check if a transition is currently running
             if (this._transitionRunning) {
@@ -509,15 +499,11 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         },
 
         // prepare the page for animation and add it to the list of pages to be animated
-        _initPage(page, transition, left) {
-          // console.log(page)
+        _initPage(page, transition, top) {
           if (!page) {
             return;
           }
-          // page.style.left = `${left}px`;
-          // console.log(left)
-          // page.style.left = `${left}px`;
-          page.style.top = `${left}px`;
+          page.style.top = `${top}px`;
           page.style.webkitTransition = transition;
           page.style.transition = transition;
           this.toggleClass('iron-swiping', true, page);
@@ -526,9 +512,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
         },
 
         _animatePages(x) {
-          // console.log(x)
           for (let i = 0; i < this._animatedPages.length; i++) {
-            // this.translate3d(`${x}px`, '0px', '0px', this._animatedPages[i]);
             this.translate3d('0px', `${x}px`, '0px', this._animatedPages[i]);
           }
         },
@@ -548,6 +532,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           const index = this.indexOf(page);
           // TODO: should be replaced with this.selectIndex when merged in master:
           // https://github.com/PolymerElements/iron-selector/issues/87
+          page.scrollTop = 0;
           this.selected = this._indexToValue(index);
         },
 

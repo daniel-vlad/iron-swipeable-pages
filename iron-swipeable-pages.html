@@ -279,10 +279,6 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             this._resetPages();
           }
           this._setUpSwipePages();
-          this._animatePages(trackData.dy);
-          this._switchPageIfNecessary(trackData.dy);
-          // Prevent regular touchmove event (disables vertical scroll)
-          window.addEventListener('touchmove', this._preventTouchMove);
         },
 
         _trackMove(trackData) {
@@ -292,9 +288,6 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
               return x.classList.contains('iron-selected')
             })[0];
             currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
-          } else {
-            this._animatePages(trackData.dy);
-            this._switchPageIfNecessary(trackData.dy);
           }
 
         },
@@ -310,11 +303,12 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           }
           this._transitionRunning = true;
           // The element is swiped away if the swiping get passed the treshold.
-           this._completeSwipe = Math.abs(trackData.dy) > this._getOffsetHeight() * this.threshold;
+          this._completeSwipe = Math.abs(trackData.dy) > this._getOffsetHeight() * this.threshold;
           let currentPage = this._animatedPages.filter(x => {
             return x.classList.contains('iron-selected')
           })[0];
-          this._completeScroll = currentPage.scrollTop === currentPage.scrollHeight - currentPage.offsetHeight || currentPage.scrollTop===0;
+          this._completeScroll = currentPage.scrollTop === currentPage.scrollHeight - currentPage.offsetHeight ||
+            currentPage.scrollTop === 0;
 
 
           if (this._completeSwipe && this._completeScroll) {
@@ -363,7 +357,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           if (this._completeSwipe && this._completeScroll) {
             // we just need to reset the flag, the transformation happened already by swiping
             this._completeSwipe = false;
-            this._completeScroll=false;
+            this._completeScroll = false;
           } else {
             // check if a transition is currently running
             if (this._transitionRunning) {
@@ -403,8 +397,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                 translateRight = true;
               }
               if (translateRight) {
-                // we translate to the right
-                console.log('right')
+                // we translate to the up
                 for (let i = virtualLastIndex; i >= virtualIndex; i--) {
                   var item = this.items[i % len];
                   this._initPage(
@@ -419,8 +412,7 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
                 }
               } else {
                 skipped = 0;
-                console.log('left')
-                // we translate to the left
+                // we translate to the down
                 for (let j = virtualLastIndex; j <= virtualIndex; j++) {
                   var item = this.items[j % len];
                   this._initPage(
@@ -449,7 +441,6 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
           // reset the animated page list
           this._animatedPages = [];
           // selected page
-          //  console.log(this.selectedItem)
           this._initPage(this.selectedItem, 'none', 0);
           // left candidate
           let skipped = 0;

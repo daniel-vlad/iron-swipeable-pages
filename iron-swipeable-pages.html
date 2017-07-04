@@ -175,7 +175,10 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             type: Boolean,
             value: false
           },
-
+          customScroll: {
+            type: Boolean,
+            value: false,
+          }
         },
 
         observers: [
@@ -287,7 +290,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             let currentPage = this._animatedPages.filter(x => {
               return x.classList.contains('iron-selected')
             })[0];
-            currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
+            if (this.customScroll) {
+              currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
+            }
           }
 
         },
@@ -321,7 +326,9 @@ Note: if you are using a `<paper-drawer-panel>`, it might be wise to use the fol
             //right is up, left is down
             this._animatePages(direction ? this._getOffsetHeight() : -this._getOffsetHeight());
           } else {
-            currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
+            if (this.customScroll) {
+              currentPage.scrollTop = currentPage.scrollTop + (this.cursYPos - trackData.dy)
+            }
             this._animatePages(0);
           }
           // Enable regular touchmove event (enables vertical scroll again)
